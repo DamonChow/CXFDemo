@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xmlns:jaxws="http://cxf.apache.org/jaxws"
+	xmlns:http-conf="http://cxf.apache.org/transports/http/configuration"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+                       http://www.springframework.org/schema/beans/spring-beans.xsd
+                       http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
+                       http://cxf.apache.org/transports/http/configuration
+                       http://cxf.apache.org/schemas/configuration/http-conf.xsd">
+
+	<import resource="classpath:META-INF/cxf/cxf.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" />
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
+
+	<bean id="clientPasswordCallback" class="com.cxfdemo.ws.client.ClientPasswordCallback"></bean>
+	
+	<bean id="wss4jOutInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JOutInterceptor">
+        <constructor-arg>
+            <map>
+                <!-- 用户认证（明文密码） -->
+                <entry key="action" value="UsernameToken"/>
+                <entry key="user" value="client"/>
+                <entry key="passwordType" value="PasswordText"/>
+				<!-- <entry key="passwordCallbackClass" 
+				value="com.cxfdemo.ws.client.ClientPasswordCallback"/> -->
+                <entry key="passwordCallbackRef" value-ref="clientPasswordCallback"/> 
+            </map>
+        </constructor-arg>
+    </bean>
+
+	<jaxws:client id="client" address="http://localhost:8888/CXFDemo/webservice/helloWorld"
+		serviceClass="com.cxfdemo.ws.service.HelloWorld">
+		<jaxws:outInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor" />
+            <ref bean="wss4jOutInterceptor"/>
+        </jaxws:outInterceptors>
+	</jaxws:client>
+	
+	<!-- 对所有的服务配置超时机制   只对服务名为{http://service.ws.cxfdemo.com/}HelloWorldService的服务生效.   -->
+	<http-conf:conduit name="*.http-conduit">       
+		<!-- ConnectionTimeout获取连接超时   ReceiveTimeout获取结果超时-->
+		<http-conf:client ConnectionTimeout="15000" ReceiveTimeout="30000"/>
+	</http-conf:conduit>
+</beans>
