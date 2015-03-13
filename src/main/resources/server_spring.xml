@@ -1,44 +1,45 @@
 <?xml version="1.0" encoding="utf-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
-	xmlns:jaxws="http://cxf.apache.org/jaxws"
-	xmlns:cxf="http://cxf.apache.org/core"
-	xsi:schemaLocation="http://www.springframework.org/schema/beans
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xmlns:jaxws="http://cxf.apache.org/jaxws"
+	   xmlns:jaxrs="http://cxf.apache.org/jaxrs"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans
                       	http://www.springframework.org/schema/beans/spring-beans.xsd
                        	http://cxf.apache.org/jaxws http://cxf.apache.org/schemas/jaxws.xsd
-						http://cxf.apache.org/core http://cxf.apache.org/schemas/core.xsd">
+                       	http://cxf.apache.org/jaxrs http://cxf.apache.org/schemas/jaxrs.xsd">
+	<!--xmlns:jaxrs="http://cxf.apache.org/jaxrs"-->
+	<import resource="classpath:META-INF/cxf/cxf.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml"/>
+	<import resource="classpath:META-INF/cxf/cxf-servlet.xml"/>
 
-	<import resource="classpath:META-INF/cxf/cxf.xml" />
-	<import resource="classpath:META-INF/cxf/cxf-extension-soap.xml" />
-	<import resource="classpath:META-INF/cxf/cxf-servlet.xml" />
-	
 	<!-- 设置密码bean -->
 	<bean id="serverPasswordCallback" class="com.cxfdemo.ws.service.ServerPasswordCallback"></bean>
-	
+
 	<!-- WSS4J密码校验 -->
 	<bean id="wss4jInInterceptor" class="org.apache.cxf.ws.security.wss4j.WSS4JInInterceptor">
 		<constructor-arg>
 			<map>
 				<!-- 用户认证（明文密码） -->
-				<entry key="action" value="UsernameToken" />
-				<entry key="passwordType" value="PasswordText" /><!-- 明文 密文采用PasswordDigest-->
-				<entry key="passwordCallbackRef" value-ref="serverPasswordCallback" />
+				<entry key="action" value="UsernameToken"/>
+				<entry key="passwordType" value="PasswordText"/>
+				<!-- 明文 密文采用PasswordDigest-->
+				<entry key="passwordCallbackRef" value-ref="serverPasswordCallback"/>
 			</map>
 		</constructor-arg>
 	</bean>
 
 	<!-- 发布服务 -->
 	<jaxws:endpoint id="helloWorld" address="/helloWorld"
-		implementor="com.cxfdemo.ws.service.HelloWorldService">
+					implementor="com.cxfdemo.ws.service.HelloWorldService">
 		<!-- 文件传送必须协议 -->
 		<jaxws:properties>
-        	<entry key="mtom-enabled" value="true"/>  
+			<entry key="mtom-enabled" value="true"/>
 		</jaxws:properties>
 		<!-- 输入拦截器 -->
 		<jaxws:inInterceptors>
-			<ref bean="wss4jInInterceptor" />
+			<ref bean="wss4jInInterceptor"/>
 			<!-- 日志打印 -->
-			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor" />
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor"/>
 		</jaxws:inInterceptors>
 		<!-- 正常输出拦截器 -->
 		<jaxws:outInterceptors>
@@ -49,14 +50,29 @@
 			<bean class="com.cxfdemo.ws.service.interceptor.ErrorHandlerInterceptor"></bean>
 		</jaxws:outFaultInterceptors>
 	</jaxws:endpoint>
-	
+
 	<jaxws:endpoint id="updateFile" address="/updateFile"
-		implementor="com.cxfdemo.ws.service.UpdateFileService">
-		<jaxws:properties>  
-        	<entry key="mtom-enabled" value="true" />  
-    	</jaxws:properties> 
+					implementor="com.cxfdemo.ws.service.UpdateFileService">
+		<jaxws:properties>
+			<entry key="mtom-enabled" value="true"/>
+		</jaxws:properties>
 	</jaxws:endpoint>
 
+	<bean id="helloRestService" class="com.cxfdemo.ws.service.HelloRestService"></bean>
+	<jaxrs:server id="helloRestful" address="/rest">
+		<jaxrs:serviceBeans>
+			<ref bean="helloRestService"/>
+		</jaxrs:serviceBeans>
+		<jaxrs:inInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingInInterceptor"></bean>
+		</jaxrs:inInterceptors>
+		<jaxrs:outInterceptors>
+			<bean class="org.apache.cxf.interceptor.LoggingOutInterceptor"></bean>
+		</jaxrs:outInterceptors>
+		<jaxrs:providers>
+			<bean class="com.fasterxml.jackson.jaxrs.json.JacksonJsonProvider"/>
+		</jaxrs:providers>
+	</jaxrs:server>
 	<!-- 全局配置 -->
 	<!-- <cxf:bus>
 		<cxf:features>
