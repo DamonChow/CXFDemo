@@ -14,10 +14,9 @@ public class HelloRestService implements HelloRest {
     private Map<String, User> map = new HashMap<String, User>();
 
     {
-    map.put("1",new User("1","liYi",1));
-    map.put("2",new User("2","wangEr",2));
-    map.put("3",new User("3","zhangSan",1));
-
+        map.put("1",new User("1","liYi",1));
+        map.put("2",new User("2","wangEr",2));
+        map.put("3",new User("3","zhangSan",1));
     }
 
     @Override
